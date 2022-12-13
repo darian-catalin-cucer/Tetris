@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Tetris</string>
+    <string name="to_left"><![CDATA[<]]></string>
 </resources>
