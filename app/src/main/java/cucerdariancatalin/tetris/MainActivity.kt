@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity(), GameView, Parcelable {
         get() = gameState.level
         @SuppressLint("SetTextI18n")
         set(value) {
-            gameState.level = value
+            value.also { gameState.level = it }
             binding.levelLabel.text = "Level: $value"
         }
 
