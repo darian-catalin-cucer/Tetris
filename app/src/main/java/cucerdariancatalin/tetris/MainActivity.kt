@@ -151,12 +151,14 @@ class MainActivity : AppCompatActivity(), GameView, Parcelable {
 
     companion object : Parceler<MainActivity> {
         override fun MainActivity.write(parcel: Parcel, flags: Int) {
+            // Write the necessary data to the parcel here
             parcel.writeInt(gameState.score)
             parcel.writeInt(gameState.level)
             parcel.writeParcelable(gameState, flags)
         }
 
         override fun create(parcel: Parcel): MainActivity {
+            // Read the data from the parcel and create a new instance of MainActivity
             val mainActivity = MainActivity()
             mainActivity.gameState = parcel.readParcelable(GameState::class.java.classLoader) ?: GameState()
             return mainActivity
