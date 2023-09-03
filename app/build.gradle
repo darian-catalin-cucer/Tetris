@@ -8,6 +8,7 @@ plugins {
 android {
     namespace 'cucerdariancatalin.tetris'
     compileSdk 34
+    compileSdkVersion 34
 
     defaultConfig {
         applicationId "cucerdariancatalin.tetris"
@@ -47,7 +48,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
-    testImplementation 'junit:junit:'
+//    testImplementation 'junit:junit:'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
