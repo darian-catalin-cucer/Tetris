@@ -4,15 +4,19 @@ import cucerdariancatalin.tetris.figures.BitMatrix
 import cucerdariancatalin.tetris.figures.Figure
 import cucerdariancatalin.tetris.figures.Point
 
+// Class representing the game board
 class Board(private val view: GameView) {
 
+    // The game area represented by a BitMatrix
     var area: BitMatrix = BitMatrix(AREA_HEIGHT, AREA_WIDTH) { _, _ -> false }
 
+    // The currently active figure on the board
     lateinit var currentFigure: Figure
 
+    // Draws the current figure on the game board
     fun drawFigure() = with(currentFigure) {
         if (ghost == null) {
-            // find ghost
+            // Find the ghost figure
             for (i in 0 until AREA_HEIGHT - position.y) {
                 val movement = Point(0, i)
                 if (!canMove(movement, currentFigure)) {
@@ -23,10 +27,12 @@ class Board(private val view: GameView) {
             }
         }
 
+        // Draw the ghost figure's points
         ghost?.points?.forEach {
             view.drawBlockAt(it.x, it.y, currentFigure.color, PaintStyle.STOKE)
         }
 
+        // Draw the current figure's points
         points.forEach {
             view.drawBlockAt(it.x, it.y, currentFigure.color, PaintStyle.FILL)
         }
@@ -34,7 +40,7 @@ class Board(private val view: GameView) {
     }
 
     /**
-     * Clear the figure in preview and game board area
+     * Clear the figure in both the preview and game board areas.
      */
     private fun clearFigure(figure: Figure) {
         figure
@@ -51,24 +57,26 @@ class Board(private val view: GameView) {
     }
 
     /**
-     * Move the specified figure by movement
-     * @return true if success
+     * Move the specified figure by the given movement.
+     * @return true if the movement was successful
      */
-    fun moveFigure(movement: Point, figure: Figure = currentFigure) : Boolean {
+    fun moveFigure(movement: Point, figure: Figure = currentFigure): Boolean {
+        // Check if the figure can be moved in the specified direction
         canMove(movement, figure) || return false
         clearFigure(figure)
 
-        // invalidate ghost
+        // Invalidate the ghost figure if there is horizontal movement
         if (movement.x != 0)
             figure.ghost = null
 
+        // Update the figure's position and draw it
         figure.position += movement
         drawFigure()
         return true
     }
 
     /**
-     * Check if the figure can be moved in a direction specified by movement
+     * Check if the figure can be moved in a direction specified by the movement.
      */
     private fun canMove(movement: Point, figure: Figure): Boolean = figure
         .points
@@ -77,16 +85,17 @@ class Board(private val view: GameView) {
             !nextPoint.outOfArea() && !area[nextPoint]
         }
 
+    // Check if a point is out of the game area
     private fun Point.outOfArea(): Boolean = x >= AREA_WIDTH || x < 0 || y >= AREA_HEIGHT || y < 0
 
     /**
-     * Rotate the figure
+     * Rotate the current figure.
      */
     fun rotateFigure() {
         val newFigure = currentFigure.clone().apply {
             rotate()
 
-            // edge cases
+            // Handle edge cases to keep the figure within the game area
             while (!points.all { it.x >= 0 }) {
                 position += Direction.RIGHT.movement
             }
@@ -97,7 +106,7 @@ class Board(private val view: GameView) {
                 position += Direction.UP.movement
             }
 
-            // try to fix unexpected collisions
+            // Try to fix unexpected collisions
             if (!points.all { !area[it] }) {
                 if (canMove(Direction.RIGHT.movement, this))
                     position += Direction.RIGHT.movement
@@ -106,6 +115,7 @@ class Board(private val view: GameView) {
             }
         }
 
+        // Check if the rotated figure can be placed on the board
         if (newFigure.points.all { !area[it] }) {
             clearFigure(currentFigure)
             currentFigure = newFigure
@@ -115,7 +125,7 @@ class Board(private val view: GameView) {
     }
 
     /**
-     * Fix the current figure when it reaches bottom of the board.
+     * Fix the current figure when it reaches the bottom of the board.
      */
     fun fixFigure() {
         for (point in currentFigure.points) {
@@ -126,7 +136,7 @@ class Board(private val view: GameView) {
     /**
      * Get the indices of filled lines in the board.
      */
-    fun getFilledLinesIndices() : List<Int> = area.array
+    fun getFilledLinesIndices(): List<Int> = area.array
         .mapIndexed { i, row -> i to row }
         .filter { it.second.all { it } }
         .map { it.first }
@@ -137,10 +147,11 @@ class Board(private val view: GameView) {
     fun wipeLines(lines: List<Int>) {
         val cropped = area.array.filter { !it.all { it } }.toMutableList()
         repeat(lines.size) {
-            cropped.add(0, Array(AREA_WIDTH) {false})
+            cropped.add(0, Array(AREA_WIDTH) { false })
         }
         area = BitMatrix(cropped.toTypedArray())
     }
 
+    // Calculate the starting position for a figure
     fun startingPosition(figure: Figure) = Point((AREA_WIDTH - figure.matrix.width) / 2, 0)
 }

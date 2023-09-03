@@ -1,27 +1,40 @@
 package cucerdariancatalin.tetris
 
-import androidx.appcompat.app.AppCompatActivity
+import android.annotation.SuppressLint
+import android.app.GameState
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import cucerdariancatalin.tetris.databinding.ActivityMainBinding
 import cucerdariancatalin.tetris.game.Game
 import cucerdariancatalin.tetris.game.GameView
 import cucerdariancatalin.tetris.game.PaintStyle
 import cucerdariancatalin.tetris.game.SoundtrackAndroid
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.parcelize.Parceler
+import kotlinx.parcelize.Parcelize
 
-class MainActivity : AppCompatActivity(), GameView {
+@Suppress("DEPRECATION")
+@OptIn(ObsoleteCoroutinesApi::class)
+@Parcelize
+class MainActivity : AppCompatActivity(), GameView, Parcelable {
     private var game: Game? = null
     private lateinit var soundtrack: SoundtrackAndroid
+    private lateinit var binding: ActivityMainBinding
+    private var gameState = GameState()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         soundtrack = SoundtrackAndroid(this)
-        initListeners()
+        initListeners(binding)
     }
 
     override fun onDestroy() {
@@ -30,54 +43,62 @@ class MainActivity : AppCompatActivity(), GameView {
         soundtrack.release()
     }
 
-    private fun initListeners() {
-        startButton.setOnClickListener {
+    @SuppressLint("SetTextI18n", "ClickableViewAccessibility")
+    private fun initListeners(binding: ActivityMainBinding) {
+        binding.startButton.setOnClickListener {
             game?.stop()
-            game = Game(this, soundtrack, Main)
-            game?.soundEnabled = soundCheck.isChecked
+            game = Game(this, soundtrack, Dispatchers.Main)
+            game?.soundEnabled = binding.soundCheck.isChecked
             game?.start()
 
-            startButton.text = "Restart"
-            pauseButton.text = "Pause"
+            binding.startButton.text = "Restart"
+            binding.pauseButton.text = "Pause"
         }
-        soundCheck.setOnCheckedChangeListener { _, isChecked ->
+
+        binding.soundCheck.setOnCheckedChangeListener { _, isChecked ->
             game?.soundEnabled = isChecked
         }
-        pauseButton.setOnClickListener {
+
+        binding.pauseButton.setOnClickListener {
             game?.pause()
             if (game?.isPaused == true) {
-                pauseButton.text = "Resume"
+                binding.pauseButton.text = "Resume"
             } else {
-                pauseButton.text = "Pause"
+                binding.pauseButton.text = "Pause"
             }
         }
-        leftButton.setOnTouchListener(ButtonTouchListener({ game?.onLeftPressed() }, { game?.onLeftReleased() }))
-        rightButton.setOnTouchListener(ButtonTouchListener({ game?.onRightPressed() }, { game?.onRightReleased() }))
-        upButton.setOnTouchListener(ButtonTouchListener({ game?.onUpPressed() }, { }))
-        downButton.setOnTouchListener(ButtonTouchListener({ game?.onDownPressed() }, { game?.onDownReleased() }))
+
+        binding.leftButton.setOnTouchListener(ButtonTouchListener({ game?.onLeftPressed() }, { game?.onLeftReleased() }))
+        binding.rightButton.setOnTouchListener(ButtonTouchListener({ game?.onRightPressed() }, { game?.onRightReleased() }))
+        binding.upButton.setOnTouchListener(ButtonTouchListener({ game?.onUpPressed() }, { }))
+        binding.downButton.setOnTouchListener(ButtonTouchListener({ game?.onDownPressed() }, { game?.onDownReleased() }))
     }
 
-    override var score: Int = 0
+    override var score: Int
+        get() = gameState.score
+        @SuppressLint("SetTextI18n")
         set(value) {
-            field = value
-            scoreLabel.text = "Score: $value"
+            gameState.score = value
+            binding.scoreLabel.text = "Score: $value"
         }
 
-    override var level: Int = 0
+    override var level: Int
+        get() = gameState.level
+        @SuppressLint("SetTextI18n")
         set(value) {
-            field = value
-            levelLabel.text = "Level: $value"
+            gameState.level = value
+            binding.levelLabel.text = "Level: $value"
         }
 
     override fun drawBlockAt(x: Int, y: Int, color: Int, style: PaintStyle) {
         when (style) {
-            PaintStyle.FILL -> boardView.fillBlockAt(x, y, color)
-            PaintStyle.STOKE -> boardView.strokeBlockAt(x, y, color)
+            PaintStyle.FILL -> binding.boardView.fillBlockAt(x, y, color)
+            PaintStyle.STOKE -> binding.boardView.strokeBlockAt(x, y, color)
         }
     }
 
     override fun clearBlockAt(x: Int, y: Int) {
-        boardView.clearBlockAt(x, y)
+        binding.boardView.clearBlockAt(x, y)
     }
 
     override fun gameOver() {
@@ -89,24 +110,24 @@ class MainActivity : AppCompatActivity(), GameView {
     }
 
     override fun clearArea() {
-        boardView.clearArea()
+        binding.boardView.clearArea()
     }
 
     override suspend fun wipeLines(lines: List<Int>) {
-        boardView.wipeLines(lines, game?.getTopBrickLine() ?: 0)
+        binding.boardView.wipeLines(lines, game?.getTopBrickLine() ?: 0)
     }
 
     override fun drawPreviewBlockAt(x: Int, y: Int, color: Int) {
-        nextFigure.fillBlockAt(x, y, color)
+        binding.nextFigure.fillBlockAt(x, y, color)
     }
 
     override fun clearPreviewArea() {
-        nextFigure.clear()
+        binding.nextFigure.clear()
     }
 
     override fun invalidate() {
-        boardView.invalidate()
-        nextFigure.invalidate()
+        binding.boardView.invalidate()
+        binding.nextFigure.invalidate()
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -127,10 +148,25 @@ class MainActivity : AppCompatActivity(), GameView {
         }
         return super.onKeyUp(keyCode, event)
     }
+
+    companion object : Parceler<MainActivity> {
+        override fun MainActivity.write(parcel: Parcel, flags: Int) {
+            parcel.writeInt(gameState.score)
+            parcel.writeInt(gameState.level)
+            parcel.writeParcelable(gameState, flags)
+        }
+
+        override fun create(parcel: Parcel): MainActivity {
+            val mainActivity = MainActivity()
+            mainActivity.gameState = parcel.readParcelable(GameState::class.java.classLoader) ?: GameState()
+            return mainActivity
+        }
+    }
 }
 
 class ButtonTouchListener(private val pressed: () -> Unit, private val released: () -> Unit) : View.OnTouchListener {
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(p0: View?, p1: MotionEvent?): Boolean {
         when (p1?.action) {
             MotionEvent.ACTION_DOWN -> pressed()

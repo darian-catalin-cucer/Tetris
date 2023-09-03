@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.tetris'
+    namespace 'cucerdariancatalin.tetris'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.example.tetris"
+        applicationId "cucerdariancatalin.tetris"
         minSdkVersion 21
         targetSdkVersion 34
         minSdk 24
