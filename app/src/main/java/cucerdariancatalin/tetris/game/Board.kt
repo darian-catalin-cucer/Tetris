@@ -46,13 +46,13 @@ class Board(private val view: GameView) {
         figure
             .points
             .forEach {
-                view.clearBlockAt(it.x, it.y)
+                /*view.clearBlockAt(it.x, it.y)*/
             }
         figure
             .ghost
             ?.points
             ?.forEach {
-                view.clearBlockAt(it.x, it.y)
+                /*view.clearBlockAt(it.x, it.y)*/
             }
     }
 

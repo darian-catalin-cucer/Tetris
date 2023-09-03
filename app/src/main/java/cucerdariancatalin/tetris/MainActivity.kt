@@ -2,7 +2,6 @@ package cucerdariancatalin.tetris
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.os.Parcel
 import android.os.Parcelable
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -15,18 +14,21 @@ import cucerdariancatalin.tetris.game.Game
 import cucerdariancatalin.tetris.game.GameView
 import cucerdariancatalin.tetris.game.PaintStyle
 import cucerdariancatalin.tetris.game.SoundtrackAndroid
+import kotlinx.android.parcel.IgnoredOnParcel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.Parcelize
 
-@Suppress("DEPRECATION")
 @OptIn(ObsoleteCoroutinesApi::class)
 @Parcelize
 class MainActivity : AppCompatActivity(), GameView, Parcelable {
+    @Transient
     private var game: Game? = null
+    @Transient
     private lateinit var soundtrack: SoundtrackAndroid
+    @Transient
     private lateinit var binding: ActivityMainBinding
+    @IgnoredOnParcel
     private var gameState = GameState()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,9 +99,9 @@ class MainActivity : AppCompatActivity(), GameView, Parcelable {
         }
     }
 
-    override fun clearBlockAt(x: Int, y: Int) {
+    /*override fun clearBlockAt(x: Int, y: Int) {
         binding.boardView.clearBlockAt(x, y)
-    }
+    }*/
 
     override fun gameOver() {
         AlertDialog.Builder(this)
@@ -147,22 +149,6 @@ class MainActivity : AppCompatActivity(), GameView, Parcelable {
             KeyEvent.KEYCODE_DPAD_DOWN -> game?.onDownReleased()
         }
         return super.onKeyUp(keyCode, event)
-    }
-
-    companion object : Parceler<MainActivity> {
-        override fun MainActivity.write(parcel: Parcel, flags: Int) {
-            // Write the necessary data to the parcel here
-            parcel.writeInt(gameState.score)
-            parcel.writeInt(gameState.level)
-            parcel.writeParcelable(gameState, flags)
-        }
-
-        override fun create(parcel: Parcel): MainActivity {
-            // Read the data from the parcel and create a new instance of MainActivity
-            val mainActivity = MainActivity()
-            mainActivity.gameState = parcel.readParcelable(GameState::class.java.classLoader) ?: GameState()
-            return mainActivity
-        }
     }
 }
 

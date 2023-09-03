@@ -30,7 +30,7 @@ interface GameView {
      * @param x The x-coordinate of the block.
      * @param y The y-coordinate of the block.
      */
-    fun clearBlockAt(x: Int, y: Int)
+    /*fun clearBlockAt(x: Int, y: Int)*/
 
     /**
      * Notify the game view that the game is over.
