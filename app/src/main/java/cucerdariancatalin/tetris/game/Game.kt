@@ -7,8 +7,10 @@ import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.selects.select
 import kotlin.coroutines.CoroutineContext
 
+// Constants
 private const val BASE_DELAY = 800L
 
+// Array of available figures
 private val figures = arrayOf(
     IFigure::class.java,
     IFigure::class.java,
@@ -20,6 +22,15 @@ private val figures = arrayOf(
     TFigure::class.java
 )
 
+/**
+ * The main game class responsible for game logic and interaction with the view.
+ *
+ * @param view The game view responsible for rendering and user input.
+ * @param soundtrack The soundtrack to play game sounds.
+ * @param uiCoroutineContext The coroutine context for UI interactions.
+ */
+@Suppress("DEPRECATION")
+@OptIn(ObsoleteCoroutinesApi::class)
 class Game(
     private val view: GameView,
     private val soundtrack: Soundtrack,
@@ -47,7 +58,7 @@ class Game(
 
     private var downKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider, 30) {
         score.awardSpeedUp()
-        fallActor.offer(Unit)
+        fallActor.trySend(Unit).isSuccess
     }
 
     private var leftKeyCoroutine: KeyCoroutine = KeyCoroutine(uiContextProvider) {
@@ -70,7 +81,8 @@ class Game(
                     onReceive {
                         board.moveFigure(Direction.DOWN.movement)
                     }
-                    onTimeout(calculateDelay()) {
+                    calculateDelay()
+                    run {
                         board.moveFigure(Direction.DOWN.movement)
                     }
                 }
@@ -98,6 +110,9 @@ class Game(
         log("actor stopped")
     }
 
+    /**
+     * Start the game.
+     */
     fun start() {
         if (isStarted) error("Can't start twice")
         isStarted = true
@@ -107,21 +122,27 @@ class Game(
         score.awardStart()
 
         board.currentFigure = randomFigure()
-        fallActor.offer(Unit)
+        fallActor.trySend(Unit).isSuccess
 
         if (soundEnabled) soundtrack.play(Sound.START)
     }
 
+    /**
+     * Stop the game.
+     */
     fun stop() {
         stopper.cancel()
     }
 
+    /**
+     * Pause or resume the game.
+     */
     fun pause() {
         MainScope().isActive || return
         if (soundEnabled) soundtrack.play(Sound.ROTATE)
         isPaused = !isPaused
         if (!isPaused)
-            fallActor.offer(Unit)
+            fallActor.trySend(Unit).isSuccess
     }
 
     private fun drawPreview() {
@@ -138,7 +159,7 @@ class Game(
         INFINITY
     }
 
-    private fun gameOver(): Boolean = board.currentFigure.position.y <=0
+    private fun gameOver(): Boolean = board.currentFigure.position.y <= 0
 
     private fun randomFigure(bringToStart: Boolean = true): Figure {
         val cls = figures.random()
@@ -148,30 +169,56 @@ class Game(
         return figure
     }
 
-    fun getTopBrickLine() = board.area.array.indexOfFirst { !it.all { !it } }
+    /**
+     * Get the index of the top brick line on the game board.
+     */
+    fun getTopBrickLine() = board.area.array.indexOfFirst { it -> !it.all { !it } }
 
+    /**
+     * Handle the left key press event.
+     */
     fun onLeftPressed() {
         if (isStarted) leftKeyCoroutine.start()
         playMoveSound()
     }
 
+    /**
+     * Handle the right key press event.
+     */
     fun onRightPressed() {
         if (isStarted) rightKeyCoroutine.start()
         playMoveSound()
     }
 
+    /**
+     * Handle the down key press event.
+     */
     fun onDownPressed() {
         if (isStarted) downKeyCoroutine.start()
         playMoveSound()
     }
 
+    /**
+     * Handle the up key press event (rotate action).
+     */
     fun onUpPressed() {
         if (isStarted) board.rotateFigure()
         if (soundEnabled) soundtrack.play(Sound.ROTATE)
     }
 
+    /**
+     * Handle the down key release event.
+     */
     fun onDownReleased() = downKeyCoroutine.stop()
+
+    /**
+     * Handle the left key release event.
+     */
     fun onLeftReleased() = leftKeyCoroutine.stop()
+
+    /**
+     * Handle the right key release event.
+     */
     fun onRightReleased() = rightKeyCoroutine.stop()
 
     private fun playMoveSound() {

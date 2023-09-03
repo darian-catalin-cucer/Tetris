@@ -6,6 +6,12 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import cucerdariancatalin.tetris.figures.Point
 
+/**
+ * Custom view to display the next figure that will appear in the game.
+ *
+ * @param context The application context.
+ * @param attrs Optional attribute set.
+ */
 class NextFigure @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : BaseSurfaceView(context, attrs) {
     private var paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
@@ -18,11 +24,21 @@ class NextFigure @JvmOverloads constructor(context: Context, attrs: AttributeSet
         super.onMeasure(widthMeasureSpec, widthMeasureSpec)
     }
 
-    fun fillBlockAt(x: Int, y:Int, color: Int) {
+    /**
+     * Fill a block in the next figure display with the specified color at the given coordinates.
+     *
+     * @param x The x-coordinate of the block.
+     * @param y The y-coordinate of the block.
+     * @param color The color to fill the block with.
+     */
+    fun fillBlockAt(x: Int, y: Int, color: Int) {
         paint.color = color
         bricks += Point(x, y)
     }
 
+    /**
+     * Clear all blocks from the next figure display.
+     */
     fun clear() {
         bricks.clear()
     }
@@ -35,7 +51,7 @@ class NextFigure @JvmOverloads constructor(context: Context, attrs: AttributeSet
             val bottom: Float = top + brickSize - gap * 2
 
             canvas.drawRoundRect(
-                left, top, right,bottom,
+                left, top, right, bottom,
                 radius, radius, paint
             )
         }

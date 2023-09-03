@@ -1,7 +1,6 @@
 package cucerdariancatalin.tetris
 
 import android.annotation.SuppressLint
-import android.app.GameState
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
@@ -10,6 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import cucerdariancatalin.tetris.data.GameState
 import cucerdariancatalin.tetris.databinding.ActivityMainBinding
 import cucerdariancatalin.tetris.game.Game
 import cucerdariancatalin.tetris.game.GameView
